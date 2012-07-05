@@ -1,12 +1,22 @@
+#!/usr/bin/env python
+
+# This program is free software. It comes without any warranty, to
+# the extent permitted by applicable law. You can redistribute it
+# and/or modify it under the terms of the Do What The Fuck You Want
+# To Public License, Version 2, as published by Sam Hocevar. See
+# http://sam.zoy.org/wtfpl/COPYING for more details.
 import requests
-import os
 from pprint import pprint
 import json
-import sys
 import base64
+import webbrowser
 
+#don't change this
 URL = r'http://api.imgur.com/2/upload.json'
-KEY = 'c9f580e62318a665305d47ca4931e90e'
+
+#replace this next line to look like:
+#KEY = "my_imgur_api_key"
+KEY = None 
 
 def upload(fp, title=None):
     global URL
@@ -27,25 +37,71 @@ def upload(fp, title=None):
 
 
 if __name__ == '__main__':
-    argc = len(sys.argv)
-    if argc < 2:
-        print "USAGE: image [title]"
-        sys.exit(1)
+    from optparse import OptionParser
+    from sys import argv, exit
 
-    image = sys.argv[1]
-    
-    if argc > 2:
-        title = ' '.join(sys.argv[2:])
-    else:
-        title = None
+    if KEY == None:
+        exit("Please go get an imgur api key\n\tapi.imgur.com\n\tsee README for details")
+
+    usage = "{name} [options] image".format(name=argv[0])
+
+    parser = OptionParser(usage=usage)
+
+    parser.add_option("-p", "--print",
+            dest="is_print", help="make the program print the imgur urls",
+            action="store_true", default=False)
+
+    parser.add_option("-j", "--json",
+            dest="is_json", help="pretty print the json from the upload",
+            action="store_true", default=False)
+
+    parser.add_option("-n", "--no-open",
+            dest="is_should_open", help="don't open in your web browser",
+            action="store_false", default=True)
+
+    parser.add_option("-t", "--title",
+            dest="title", help="optional title for your upload", default=None)
 
 
-    r = upload(image, title=title)
+    (options, args) = parser.parse_args()
+
+    if len(args) < 1:
+        parser.error("need an image bro")
+
+    r = upload(args[0], title=options.title)
     j = json.loads(r.text)
-    with open('test.json', 'w+') as f:
-        json.dump(r.text, f, indent=4)
+    urls = j["upload"]["links"]
 
-    pprint(j)
-    for name, link in j['upload']['links'].iteritems():
-        print name.upper(), ' => ', link
+    if options.is_should_open:
+        webbrowser.open_new(urls["imgur_page"])
+    if options.is_json:
+        pprint(j)
+    if options.is_print:
+        for name, link in urls.iteritems():
+            print name, "=>", link
+
+
+
+    
+    #argc = len(sys.argv)
+    #if argc < 2:
+    #    print "USAGE: image [title]"
+    #    sys.exit(1)
+
+    #image = sys.argv[1]
+    #
+    #if argc > 2:
+    #    title = ' '.join(sys.argv[2:])
+    #else:
+    #    title = None
+
+
+    #r = upload(image, title=title)
+    #j = json.loads(r.text)
+    #with open('test.json', 'w+') as f:
+    #    json.dump(r.text, f, indent=4)
+
+    #pprint(j)
+    #for name, link in j['upload']['links'].iteritems():
+    #    print name.upper(), ' => ', link
 
