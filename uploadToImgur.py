@@ -8,6 +8,7 @@
 import requests
 from pprint import pprint
 import json
+from sys import argv, exit
 import base64
 import webbrowser
 
@@ -18,19 +19,17 @@ URL = r'http://api.imgur.com/2/upload.json'
 #KEY = "my_imgur_api_key"
 KEY = None 
 
-def upload(fp, title=None):
-    global URL
-    global KEY
-    try:
-        with open(fp, 'rb') as f: #reading binary data
-            bin_data = base64.b64encode(f.read())
-    except IOError:
-        print "That file doesn't exist maybe you typed it wrong"
-        sys.exit(1)
+def upload(fp, title=None, caption=None, name=None):
+    """read a file encode it as bas64 upload it to imgur
+    and return a requests response object"""
+    with open(fp, 'rb') as f: #reading binary data
+        bin_data = base64.b64encode(f.read())
 
     payload = {'key': KEY,
             'image': bin_data}
     if title: payload['title'] = title
+    if caption: payload['caption'] = caption
+    if name: payload['name'] = name
 
     r = requests.post(URL, data=payload)
     return r
@@ -38,7 +37,6 @@ def upload(fp, title=None):
 
 if __name__ == '__main__':
     from optparse import OptionParser
-    from sys import argv, exit
 
     if KEY == None:
         exit("Please go get an imgur api key\n\tapi.imgur.com\n\tsee README for details")
@@ -55,12 +53,18 @@ if __name__ == '__main__':
             dest="is_json", help="pretty print the json from the upload",
             action="store_true", default=False)
 
-    parser.add_option("-n", "--no-open",
+    parser.add_option("-w", "--no-web-browser",
             dest="is_should_open", help="don't open in your web browser",
             action="store_false", default=True)
 
     parser.add_option("-t", "--title",
             dest="title", help="optional title for your upload", default=None)
+
+    parser.add_option("-n", "--name",
+            dest="name", help="optional name for the image", default=None)
+
+    parser.add_option("-c", "--caption",
+            dest="caption", help="optional caption for the image", default=None)
 
 
     (options, args) = parser.parse_args()
@@ -68,7 +72,7 @@ if __name__ == '__main__':
     if len(args) < 1:
         parser.error("need an image bro")
 
-    r = upload(args[0], title=options.title)
+    r = upload(args[0], title=options.title, name=options.name, caption=options.caption)
     j = json.loads(r.text)
     urls = j["upload"]["links"]
 
