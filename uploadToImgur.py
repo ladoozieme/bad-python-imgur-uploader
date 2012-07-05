@@ -80,28 +80,3 @@ if __name__ == '__main__':
         for name, link in urls.iteritems():
             print name, "=>", link
 
-
-
-    
-    #argc = len(sys.argv)
-    #if argc < 2:
-    #    print "USAGE: image [title]"
-    #    sys.exit(1)
-
-    #image = sys.argv[1]
-    #
-    #if argc > 2:
-    #    title = ' '.join(sys.argv[2:])
-    #else:
-    #    title = None
-
-
-    #r = upload(image, title=title)
-    #j = json.loads(r.text)
-    #with open('test.json', 'w+') as f:
-    #    json.dump(r.text, f, indent=4)
-
-    #pprint(j)
-    #for name, link in j['upload']['links'].iteritems():
-    #    print name.upper(), ' => ', link
-
